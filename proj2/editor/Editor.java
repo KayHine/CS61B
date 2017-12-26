@@ -112,7 +112,7 @@ public class Editor extends Application {
         // Create a Node that will be the parent of all things displayed on the screen
         Group root = new Group();
         // The Scene represents the window: its height and width will be the height and width
-        // of the widnow displayed
+        // of the window displayed
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT, Color.WHITE);
 
         // To get information about what keys the user is pressing, create an EventHandler
