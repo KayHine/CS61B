@@ -11,8 +11,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.util.Collection;
-
 public class Editor extends Application {
     private static final int WINDOW_WIDTH = 500;
     private static final int WINDOW_HEIGHT = 500;
@@ -42,8 +40,7 @@ public class Editor extends Application {
             textCenterY = 0;
 
             // Initialize some empty text and add it to root so that it will be displayed.
-            displayText = new Text(textCenterX, textCenterY, "HELLO!");
-            Text anotherText = new Text(textCenterX, textCenterY, "BYE!");
+            displayText = new Text(textCenterX, textCenterY, "");
 
             // Initialize some empty FastLinkedList to store the keys pressed
             buffer = new FastLinkedList<Text>();
@@ -55,14 +52,10 @@ public class Editor extends Application {
             // simplier!
             displayText.setTextOrigin(VPos.TOP);
             displayText.setFont(Font.font(fontName, fontSize));
-            anotherText.setTextOrigin(VPos.TOP);
-            anotherText.setFont(Font.font(fontName, fontSize));
             buffer.addChar(displayText);
-            buffer.addChar(anotherText);
 
             // All new Nodes need to be added to the root in order to be displayed.
-            //addBufferToRoot(buffer, "add");
-            root.getChildren().addAll(buffer);
+            root.getChildren().addAll(buffer.getCurrentNode().val);
         }
 
         @Override
@@ -72,26 +65,28 @@ public class Editor extends Application {
                 // the KEY_TYPED event, javafx handles the "Shift" key and associated
                 // capitalizations.
                 String characterTyped = keyEvent.getCharacter();
+
                 if (characterTyped.length() > 0 && characterTyped.charAt(0) != 8) {
                     // Ignore control keys, which have non-zero length, as well as the backspace
                     // key, which is represented as a character of value = 8 on Windows.
-                    Text newChar = new Text(STARTING_TEXT_POSITION_X, STARTING_TEXT_POSITION_Y, characterTyped);
-                    newChar.setFont((Font.font(fontName, fontSize)));
-                    newChar.setTextOrigin(VPos.TOP);
-                    buffer.addChar(newChar);
-                    //addBufferToRoot(buffer, "add");
-                    //root.getChildren().add(newChar);
-                    System.out.println(root.getChildren().toString());
-                    //buffer.printList();
+                    addCharToBuffer(characterTyped);
+                    addBufferToRoot(buffer, "add");
                     keyEvent.consume();
                 } else if (characterTyped.charAt(0) == 8) {
                     // backspace has been pressed, delete the last character from displayString
-                    buffer.deleteChar();
-                    //addBufferToRoot(buffer, "delete");
-                    //buffer.printList();
+                    addBufferToRoot(buffer, "delete");
                     keyEvent.consume();
                 }
             }
+        }
+
+        // function to add new Text object to buffer
+        public void addCharToBuffer(String characterTyped) {
+            textCenterX = textCenterX + (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+            Text newChar = new Text(textCenterX, STARTING_TEXT_POSITION_Y, characterTyped);
+            newChar.setFont((Font.font(fontName, fontSize)));
+            newChar.setTextOrigin(VPos.TOP);
+            buffer.addChar(newChar);
         }
 
         // function to iterate through buffer and add to root
@@ -100,6 +95,9 @@ public class Editor extends Application {
                 root.getChildren().add(buffer.getCurrentNode().val);
             } else if (action == "delete") {
                 root.getChildren().remove(buffer.getCurrentNode().val);
+                // decrement textCenterX to account for the deleted character
+                textCenterX = textCenterX - (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+                buffer.deleteChar();
             }
         }
     }

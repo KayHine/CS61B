@@ -2,9 +2,8 @@ package editor;
 
 import java.util.LinkedList;
 import java.util.Iterator;
-import javafx.scene.Node;
 
-public class FastLinkedList<Item> extends LinkedList<Item> implements Iterable<Item> {
+public class FastLinkedList<Item> implements Iterable<Item> {
 
     public class Node {
         public Item val;
@@ -73,6 +72,10 @@ public class FastLinkedList<Item> extends LinkedList<Item> implements Iterable<I
 
     public Node getCurrentNode() {
         return currentNode;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
     }
 
     public class fastIterator implements Iterator<Item> {
