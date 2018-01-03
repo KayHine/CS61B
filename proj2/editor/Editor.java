@@ -1,8 +1,12 @@
 package editor;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.VPos;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
@@ -10,11 +14,22 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 public class Editor extends Application {
     private static final int WINDOW_WIDTH = 500;
     private static final int WINDOW_HEIGHT = 500;
     private Group root;
+    private final Rectangle cursor;
+
+    // Editor Constructor
+    public Editor() {
+        // Create a cursor.
+        cursor = new Rectangle(2, 20);
+        cursor.setX(0);
+        cursor.setY(0);
+    }
 
     /** An EventHandler to handle keys that get pressed. */
     private class KeyEventHandler implements EventHandler<KeyEvent> {
@@ -82,7 +97,12 @@ public class Editor extends Application {
 
         // function to add new Text object to buffer
         public void addCharToBuffer(String characterTyped) {
-            textCenterX = textCenterX + (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+            if (!buffer.isEmpty()) {
+                textCenterX = textCenterX + (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+            } else {
+                textCenterX = 0;
+            }
+
             Text newChar = new Text(textCenterX, STARTING_TEXT_POSITION_Y, characterTyped);
             newChar.setFont((Font.font(fontName, fontSize)));
             newChar.setTextOrigin(VPos.TOP);
@@ -96,10 +116,47 @@ public class Editor extends Application {
             } else if (action == "delete") {
                 root.getChildren().remove(buffer.getCurrentNode().val);
                 // decrement textCenterX to account for the deleted character
-                textCenterX = textCenterX - (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+                if (!buffer.isEmpty()) {
+                    textCenterX = textCenterX - (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+                } else {
+                    textCenterX = 0;
+                }
                 buffer.deleteChar();
             }
         }
+    }
+
+    /** An EventHandler to make the cursor blink */
+    private class BlinkingCursorEventHandler implements EventHandler<ActionEvent> {
+        private int currentState = 0;
+        private Color[] states = {Color.BLACK, Color.rgb(0, 0, 0, 0)};
+
+        BlinkingCursorEventHandler() {
+            blink();
+        }
+
+        private void blink() {
+            cursor.setFill(states[currentState]);
+            currentState = (currentState + 1) % states.length;
+        }
+
+        @Override
+        public void handle(ActionEvent event) {
+            blink();
+        }
+    }
+
+    /** Makes the cursor blink periodically */
+    public void makeCursorBlink() {
+        // Create a timeline that will call the "handle" function of BlinkCursorEventHandler
+        // every 0.5 seconds
+        final Timeline timeline = new Timeline();
+        // The cursor should continue blinking forever.
+        timeline.setCycleCount(Timeline.INDEFINITE);
+        BlinkingCursorEventHandler cursorChange = new BlinkingCursorEventHandler();
+        KeyFrame keyFrame = new KeyFrame(Duration.seconds(0.5), cursorChange);
+        timeline.getKeyFrames().add(keyFrame);
+        timeline.play();
     }
 
     @Override
@@ -109,6 +166,11 @@ public class Editor extends Application {
         // The Scene represents the window: its height and width will be the height and width
         // of the window displayed
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT, Color.WHITE);
+        scene.getCursor();
+        scene.setCursor(Cursor.TEXT);
+
+        root.getChildren().add(cursor);
+        makeCursorBlink();
 
         // To get information about what keys the user is pressing, create an EventHandler
         // EventHandler subclasses must override the "handle" function, which will be called
