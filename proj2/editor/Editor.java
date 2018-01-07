@@ -107,6 +107,7 @@ public class Editor extends Application {
             buffer.addChar(newChar);
 
             // update textCenterX to the front of the current character
+            // so we know right away where the next character will go
             if (!buffer.isEmpty()) {
                 textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
             } else {
@@ -119,28 +120,35 @@ public class Editor extends Application {
             if (action == "add") {
                 root.getChildren().add(buffer.getCurrentItem());
                 cursor.setX(textCenterX);
+                // gonna need to update Y position when we read the end of the line
             } else if (action == "delete") {
                 root.getChildren().remove(buffer.getCurrentItem());
-                // decrement textCenterX to account for the deleted character
+                buffer.deleteChar();
+
+                // set textCenterX to the current character + it's width
+                // set textCenterY to the current character's Y-position
                 if (!buffer.isEmpty()) {
-                    textCenterX = Math.max(0, textCenterX - (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                    textCenterX = (int) Math.round(buffer.getCurrentItem().getX() + buffer.getCurrentItem().getLayoutBounds().getWidth());
+                    textCenterY = (int) Math.round(buffer.getCurrentItem().getY());
                 } else {
                     textCenterX = 0;
+                    textCenterY = Math.max(0, textCenterY - STARTING_FONT_SIZE);
                 }
-                buffer.deleteChar();
+
                 cursor.setX(textCenterX);
+                cursor.setY(textCenterY);
             }
         }
 
         /** Need to actually store a "\r" character in addition to moving the cursor. That way we know when to move the cursor and current
          * position when we remove the "\r" character from buffer
          */
-        // TODO: figure out how to store a "\r" character
+        // TODO: figure out how to store a "\r" character (not sure if i actually need to do this)
 
         // function to process new lines
         public void newLine() {
             textCenterX = 0;
-            textCenterY = textCenterY + (int) buffer.getCurrentItem().getLayoutBounds().getHeight();
+            textCenterY = textCenterY + STARTING_FONT_SIZE;
             cursor.setX(textCenterX);
             cursor.setY(textCenterY);
         }
