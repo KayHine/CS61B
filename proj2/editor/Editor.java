@@ -81,9 +81,9 @@ public class Editor extends Application {
                 // capitalizations.
                 String characterTyped = keyEvent.getCharacter();
 
-                if (characterTyped.length() > 0 && characterTyped.charAt(0) != 8) {
+                if (characterTyped.length() > 0 && characterTyped.charAt(0) != 8 && characterTyped.charAt(0) != 13) {
                     // Ignore control keys, which have non-zero length, as well as the backspace
-                    // key, which is represented as a character of value = 8 on Windows.
+                    // key, which is represented as a character of value = 8 on Windows or the new line key.
                     addCharToBuffer(characterTyped);
                     addBufferToRoot(buffer, "add");
                     keyEvent.consume();
@@ -91,38 +91,58 @@ public class Editor extends Application {
                     // backspace has been pressed, delete the last character from displayString
                     addBufferToRoot(buffer, "delete");
                     keyEvent.consume();
+                } else if (characterTyped.charAt(0) == 13) {
+                    // ENTER was pressed, process newline
+                    newLine();
                 }
             }
         }
 
         // function to add new Text object to buffer
         public void addCharToBuffer(String characterTyped) {
-            if (!buffer.isEmpty()) {
-                textCenterX = textCenterX + (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
-            } else {
-                textCenterX = 0;
-            }
-
-            Text newChar = new Text(textCenterX, STARTING_TEXT_POSITION_Y, characterTyped);
+            // add new character to buffer
+            Text newChar = new Text(textCenterX, textCenterY, characterTyped);
             newChar.setFont((Font.font(fontName, fontSize)));
             newChar.setTextOrigin(VPos.TOP);
             buffer.addChar(newChar);
+
+            // update textCenterX to the front of the current character
+            if (!buffer.isEmpty()) {
+                textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
+            } else {
+                textCenterX = 0;
+            }
         }
 
         // function to iterate through buffer and add to root
         public void addBufferToRoot(FastLinkedList<Text> buffer, String action) {
             if (action == "add") {
-                root.getChildren().add(buffer.getCurrentNode().val);
+                root.getChildren().add(buffer.getCurrentItem());
+                cursor.setX(textCenterX);
             } else if (action == "delete") {
-                root.getChildren().remove(buffer.getCurrentNode().val);
+                root.getChildren().remove(buffer.getCurrentItem());
                 // decrement textCenterX to account for the deleted character
                 if (!buffer.isEmpty()) {
-                    textCenterX = textCenterX - (int) buffer.getCurrentNode().val.getLayoutBounds().getWidth();
+                    textCenterX = Math.max(0, textCenterX - (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
                 } else {
                     textCenterX = 0;
                 }
                 buffer.deleteChar();
+                cursor.setX(textCenterX);
             }
+        }
+
+        /** Need to actually store a "\r" character in addition to moving the cursor. That way we know when to move the cursor and current
+         * position when we remove the "\r" character from buffer
+         */
+        // TODO: figure out how to store a "\r" character
+
+        // function to process new lines
+        public void newLine() {
+            textCenterX = 0;
+            textCenterY = textCenterY + (int) buffer.getCurrentItem().getLayoutBounds().getHeight();
+            cursor.setX(textCenterX);
+            cursor.setY(textCenterY);
         }
     }
 

@@ -74,6 +74,10 @@ public class FastLinkedList<Item> implements Iterable<Item> {
         return currentNode;
     }
 
+    public Item getCurrentItem() {
+        return currentNode.val;
+    }
+
     public boolean isEmpty() {
         return size == 0;
     }
