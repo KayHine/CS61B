@@ -86,7 +86,7 @@ public class FastLinkedList<Item> implements Iterable<Item> {
         private Node index;
 
         public fastIterator() {
-            index = sentinel;
+            index = currentNode;
         }
 
         public boolean hasNext() {
@@ -96,13 +96,23 @@ public class FastLinkedList<Item> implements Iterable<Item> {
         public Item next() {
             Node current = index.next;
             index = index.next;
+            currentNode = index;
             return current.val;
         }
+    }
+
+    public void moveCurrentNodeBack() {
+        currentNode = currentNode.prev;
+    }
+
+    public void moveCurrentNodeNext() {
+        currentNode = currentNode.next;
     }
 
     public Iterator<Item> iterator() {
         return new fastIterator();
     }
+
 
     /** Implementing get() method for debugging purposes. */
     public Item get(int index) {

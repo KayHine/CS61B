@@ -9,6 +9,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -17,10 +18,13 @@ import javafx.stage.Stage;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
+import java.util.Iterator;
+
 public class Editor extends Application {
     private static final int WINDOW_WIDTH = 500;
     private static final int WINDOW_HEIGHT = 500;
     private Group root;
+    private Scene scene;
     private final Rectangle cursor;
 
     // Editor Constructor
@@ -84,19 +88,39 @@ public class Editor extends Application {
                 if (characterTyped.length() > 0 && characterTyped.charAt(0) != 8 && characterTyped.charAt(0) != 13) {
                     // Ignore control keys, which have non-zero length, as well as the backspace
                     // key, which is represented as a character of value = 8 on Windows or the new line key.
-                    addCharToBuffer(characterTyped);
-                    addBufferToRoot(buffer, "add");
+                    addBufferToRoot(buffer, characterTyped, "add");
                     keyEvent.consume();
                 } else if (characterTyped.charAt(0) == 8) {
                     // backspace has been pressed, delete the last character from displayString
-                    addBufferToRoot(buffer, "delete");
+                    addBufferToRoot(buffer, "", "delete");
                     keyEvent.consume();
                 } else if (characterTyped.charAt(0) == 13) {
                     // ENTER was pressed, process newline
                     newLine();
                 }
             }
+
+            // Use the KEY_PRESSED event type to handle arrow LEFT, RIGHT, UP, and DOWN
+            if (keyEvent.getEventType() == KeyEvent.KEY_PRESSED) {
+                KeyCode keyPressed = keyEvent.getCode();
+
+                if (keyPressed == KeyCode.LEFT) {
+                    cursor.setX(cursor.getX() - (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                    cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
+                    buffer.moveCurrentNodeBack();
+                } else if (keyPressed == KeyCode.RIGHT) {
+                    buffer.moveCurrentNodeNext();
+                    cursor.setX(cursor.getX() + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                    cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
+                } else if (keyPressed == KeyCode.UP) {
+
+                } else if (keyPressed == KeyCode.DOWN) {
+
+                }
+            }
         }
+
+        // TODO: need to make the cursor position the spot to add new characters
 
         // function to add new Text object to buffer
         public void addCharToBuffer(String characterTyped) {
@@ -110,14 +134,17 @@ public class Editor extends Application {
             // so we know right away where the next character will go
             if (!buffer.isEmpty()) {
                 textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
+                // check to see if we need to go to a new line
+                handleWordWrap();
             } else {
                 textCenterX = 0;
             }
         }
 
         // function to iterate through buffer and add to root
-        public void addBufferToRoot(FastLinkedList<Text> buffer, String action) {
+        public void addBufferToRoot(FastLinkedList<Text> buffer, String characterTyped, String action) {
             if (action == "add") {
+                addCharToBuffer(characterTyped);
                 root.getChildren().add(buffer.getCurrentItem());
                 cursor.setX(textCenterX);
                 // gonna need to update Y position when we read the end of the line
@@ -151,6 +178,24 @@ public class Editor extends Application {
             textCenterY = textCenterY + STARTING_FONT_SIZE;
             cursor.setX(textCenterX);
             cursor.setY(textCenterY);
+        }
+
+        public void handleWordWrap() {
+            if (textCenterX > scene.getWidth()) {
+                while (buffer.getCurrentItem().getText().charAt(0) != ' ') {
+                    buffer.moveCurrentNodeBack();
+                }
+
+                newLine();
+                Iterator it = buffer.iterator();
+                while (it.hasNext()) {
+                    Text txt = (Text) it.next();
+                    txt.setX(textCenterX);
+                    txt.setY(textCenterY);
+
+                    textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
+                }
+            }
         }
     }
 
@@ -193,7 +238,7 @@ public class Editor extends Application {
         root = new Group();
         // The Scene represents the window: its height and width will be the height and width
         // of the window displayed
-        Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT, Color.WHITE);
+        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT, Color.WHITE);
         scene.getCursor();
         scene.setCursor(Cursor.TEXT);
 
