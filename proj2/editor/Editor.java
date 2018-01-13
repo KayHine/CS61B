@@ -58,9 +58,6 @@ public class Editor extends Application {
             textCenterX = 0;
             textCenterY = 0;
 
-            // Initialize some empty text and add it to root so that it will be displayed.
-            displayText = new Text(textCenterX, textCenterY, "");
-
             // Initialize some empty FastLinkedList to store the keys pressed
             buffer = new FastLinkedList<Text>();
 
@@ -69,12 +66,6 @@ public class Editor extends Application {
             // highest position across all letters (for example, the top of a letter like "I", as
             // opposed to the top of a letter like "e"), which makes calculating positions much
             // simplier!
-            displayText.setTextOrigin(VPos.TOP);
-            displayText.setFont(Font.font(fontName, fontSize));
-            buffer.addChar(displayText);
-
-            // All new Nodes need to be added to the root in order to be displayed.
-            root.getChildren().addAll(buffer.getCurrentNode().val);
         }
 
         @Override
@@ -105,13 +96,18 @@ public class Editor extends Application {
                 KeyCode keyPressed = keyEvent.getCode();
 
                 if (keyPressed == KeyCode.LEFT) {
-                    cursor.setX(cursor.getX() - (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
-                    cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
-                    buffer.moveCurrentNodeBack();
+                    if (!buffer.isEmpty()) {
+                        cursor.setX(cursor.getX() - (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                        cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
+                        buffer.moveCurrentNodeBack();
+                    }
                 } else if (keyPressed == KeyCode.RIGHT) {
-                    buffer.moveCurrentNodeNext();
-                    cursor.setX(cursor.getX() + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
-                    cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
+                    // allow moving currentNode to the right until we reach the end
+                    if (!buffer.isEmpty()) {
+                        buffer.moveCurrentNodeNext();
+                        cursor.setX(cursor.getX() + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                        cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
+                    }
                 } else if (keyPressed == KeyCode.UP) {
 
                 } else if (keyPressed == KeyCode.DOWN) {
@@ -125,19 +121,22 @@ public class Editor extends Application {
         // function to add new Text object to buffer
         public void addCharToBuffer(String characterTyped) {
             // add new character to buffer
-            Text newChar = new Text(textCenterX, textCenterY, characterTyped);
+            Text newChar = new Text(cursor.getX(), cursor.getY(), characterTyped);
             newChar.setFont((Font.font(fontName, fontSize)));
             newChar.setTextOrigin(VPos.TOP);
             buffer.addChar(newChar);
 
+            // Shift all the letter to the right if it exists
+            shiftRow((int) Math.round(newChar.getLayoutBounds().getWidth()));
+
             // update textCenterX to the front of the current character
             // so we know right away where the next character will go
             if (!buffer.isEmpty()) {
-                textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
+                cursor.setX(cursor.getX() + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
                 // check to see if we need to go to a new line
-                handleWordWrap();
+                //handleWordWrap();
             } else {
-                textCenterX = 0;
+                cursor.setX(0);
             }
         }
 
@@ -146,24 +145,21 @@ public class Editor extends Application {
             if (action == "add") {
                 addCharToBuffer(characterTyped);
                 root.getChildren().add(buffer.getCurrentItem());
-                cursor.setX(textCenterX);
                 // gonna need to update Y position when we read the end of the line
-            } else if (action == "delete") {
+            } else if (action == "delete" && !buffer.isEmpty()) {
                 root.getChildren().remove(buffer.getCurrentItem());
+                shiftRow((int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()) * -1);
                 buffer.deleteChar();
 
                 // set textCenterX to the current character + it's width
                 // set textCenterY to the current character's Y-position
                 if (!buffer.isEmpty()) {
-                    textCenterX = (int) Math.round(buffer.getCurrentItem().getX() + buffer.getCurrentItem().getLayoutBounds().getWidth());
-                    textCenterY = (int) Math.round(buffer.getCurrentItem().getY());
+                    cursor.setX((int) Math.round(buffer.getCurrentItem().getX() + buffer.getCurrentItem().getLayoutBounds().getWidth()));
+                    cursor.setY((int) Math.round(buffer.getCurrentItem().getY()));
                 } else {
-                    textCenterX = 0;
-                    textCenterY = Math.max(0, textCenterY - STARTING_FONT_SIZE);
+                    cursor.setX(0);
+                    cursor.setY(Math.max(0, (int)cursor.getY() - STARTING_FONT_SIZE));
                 }
-
-                cursor.setX(textCenterX);
-                cursor.setY(textCenterY);
             }
         }
 
@@ -174,14 +170,20 @@ public class Editor extends Application {
 
         // function to process new lines
         public void newLine() {
-            textCenterX = 0;
-            textCenterY = textCenterY + STARTING_FONT_SIZE;
-            cursor.setX(textCenterX);
-            cursor.setY(textCenterY);
+            cursor.setX(0);
+            cursor.setY((int) cursor.getY() + STARTING_FONT_SIZE);
+        }
+
+        public void shiftRow(int shiftWidth) {
+            Iterator it = buffer.iterator();
+            while (it.hasNext()) {
+                Text txt = (Text) it.next();
+                txt.setX(txt.getX() + shiftWidth);
+            }
         }
 
         public void handleWordWrap() {
-            if (textCenterX > scene.getWidth()) {
+            if (cursor.getX() > scene.getWidth()) {
                 while (buffer.getCurrentItem().getText().charAt(0) != ' ') {
                     buffer.moveCurrentNodeBack();
                 }
@@ -190,10 +192,10 @@ public class Editor extends Application {
                 Iterator it = buffer.iterator();
                 while (it.hasNext()) {
                     Text txt = (Text) it.next();
-                    txt.setX(textCenterX);
-                    txt.setY(textCenterY);
+                    txt.setX(cursor.getX());
+                    txt.setY(cursor.getY());
 
-                    textCenterX = textCenterX + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth());
+                    cursor.setX(cursor.getX() + (int) Math.round(buffer.getCurrentItem().getLayoutBounds().getWidth()));
                 }
             }
         }

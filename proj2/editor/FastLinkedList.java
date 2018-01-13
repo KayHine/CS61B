@@ -82,6 +82,10 @@ public class FastLinkedList<Item> implements Iterable<Item> {
         return size == 0;
     }
 
+    public int getSize() {
+        return size;
+    }
+
     public class fastIterator implements Iterator<Item> {
         private Node index;
 
@@ -96,17 +100,22 @@ public class FastLinkedList<Item> implements Iterable<Item> {
         public Item next() {
             Node current = index.next;
             index = index.next;
-            currentNode = index;
             return current.val;
         }
     }
 
     public void moveCurrentNodeBack() {
-        currentNode = currentNode.prev;
+        if (currentNode.prev != sentinel) {
+            currentNode = currentNode.prev;
+            currentPos--;
+        }
     }
 
     public void moveCurrentNodeNext() {
-        currentNode = currentNode.next;
+        if (currentNode.next != sentinel) {
+            currentNode = currentNode.next;
+            currentPos++;
+        }
     }
 
     public Iterator<Item> iterator() {
