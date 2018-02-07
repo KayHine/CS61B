@@ -91,17 +91,31 @@ public class Percolation {
         return grid.length * row + col;
     }
 
-    // check adjacent cells and add to list if they're opened
+    // check adjacent cells and add to disjointed set if they're opened
     public void connectAdjacent(int row, int col) {
         int current = to1D(row, col);
-        for (int i = Math.max(0, row - 1); i < Math.min(grid.length - 1, row + 1); i++) {
-            for (int j = Math.max(0, col - 1); j < Math.min(grid.length - 1, col + 1); j++) {
-                if ((row != i || col != j) && grid[i][j] == true) {
-                    int adjacent = to1D(i, j);
-                    network.union(current, adjacent);
-                }
-            }
+        // check top
+        if (grid[Math.max(row - 1, 0)][col] == true) {
+            int top = to1D(Math.max(row - 1, 0), col);
+            if (!network.connected(current, top)) network.union(current, top);
+        }
+
+        // check right
+        if (grid[row][Math.min(col + 1, grid.length - 1)] == true) {
+            int right = to1D(row, Math.min(col + 1, grid.length - 1));
+            if (!network.connected(current, right)) network.union(current, right);
+        }
+
+        // check bottom
+        if (grid[Math.min(row + 1, grid.length - 1)][col] == true) {
+            int bottom = to1D(Math.min(row + 1, grid.length - 1), col);
+            if (!network.connected(current, bottom)) network.union(current, bottom);
+        }
+
+        // check left
+        if (grid[row][Math.max(col - 1, 0)] == true) {
+            int left = to1D(row, Math.max(col - 1, 0));
+            if (!network.connected(current, left)) network.union(current, left);
         }
     }
-
 }
