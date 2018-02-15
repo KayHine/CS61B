@@ -1,12 +1,11 @@
 package hw3.hash;
 
+import edu.princeton.cs.algs4.Complex;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 import edu.princeton.cs.algs4.StdRandom;
 
 
@@ -28,7 +27,26 @@ public class TestComplexOomage {
          * and ensure that no bucket has fewer than N / 50
          * Oomages and no bucket has more than N / 2.5 Oomages.
          */
-        return false;
+        boolean fewer = true;
+        boolean more = true;
+
+        HashMap<Integer, Integer> buckets = new HashMap<>();
+        for (int i = 0; i < 10; i++) {
+            buckets.put(i, 0);
+        }
+
+        for (ComplexOomage om : oomages) {
+            int bucket = om.hashCode() % 10;
+            int count = buckets.get(bucket);
+            buckets.put(bucket, count + 1);
+        }
+
+        for (Integer k : buckets.values()) {
+            if (k < oomages.size() / 50) fewer = false;
+            if (k > oomages.size() / 2.5) more = false;
+        }
+
+        return fewer && more;
     }
 
 
