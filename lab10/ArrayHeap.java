@@ -51,7 +51,10 @@ public class ArrayHeap<T> {
 	 */
 	public void changePriority(T item, double priority) {
 		// TODO Complete this method!
-
+		// find node
+		// change priority
+		// bubble up or down
+		Node root = peek();
 	}
 
 	/**
@@ -114,7 +117,6 @@ public class ArrayHeap<T> {
 	 * Returns the index of the node to the left of the node at i.
 	 */
 	private int getLeftOf(int i) {
-		// TODO Complete this method!
 		return 2 * i;
 	}
 
@@ -122,7 +124,6 @@ public class ArrayHeap<T> {
 	 * Returns the index of the node to the right of the node at i.
 	 */
 	private int getRightOf(int i) {
-		// TODO Complete this method!
 		return 2 * 1 + 1;
 	}
 
@@ -147,7 +148,6 @@ public class ArrayHeap<T> {
 	 * Adds the given node as the right child of the node at the given index.
 	 */
 	private void setRight(int index, Node n) {
-		// TODO Complete this method!
 		int rightIndex = getRightOf(index);
 		setNode(rightIndex, n);
 	}
@@ -156,7 +156,6 @@ public class ArrayHeap<T> {
 	 * Bubbles up the node currently at the given index.
 	 */
 	private void bubbleUp(int index) {
-		// TODO Complete this method!
 		while (index > 1 && min(getParentOf(index), index) == index) {
 			swap(index, getParentOf(index));
 			index = getParentOf(index);
@@ -167,7 +166,6 @@ public class ArrayHeap<T> {
 	 * Bubbles down the node currently at the given index.
 	 */
 	private void bubbleDown(int index) {
-		// TODO Complete this method!
 		while (2 * index <= contents.size() - 1) {
 			int child = getLeftOf(index);
 			if (child < contents.size() - 1 && min(child, child + 1) != child) child++;
