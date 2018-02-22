@@ -34,6 +34,20 @@ public final class Board {
         return size * i + j + 1;
     }
 
+    public int getX(int num) {
+        if (num > 0 && num < 4) {
+            return 0;
+        } else if (num > 3 && num < 7) {
+            return 1;
+        } else {
+            return 2;
+        }
+    }
+
+    public int getY(int num) {
+        return num - (size * getX(num));
+    }
+
     // hamming priority function - # of tiles in wrong position
     public int hamming() {
         int sum = 0;
@@ -52,7 +66,16 @@ public final class Board {
     // manhattan priority function - sum of vertical and horizontal distance
     // each tile is from its goal position
     public int manhattan() {
-        return 0;
+        int sum = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                int val = tileAt(i, j);
+                int x = getX(val);
+                int y = getY(val);
+                sum += Math.abs(i - x) + Math.abs(j - y);
+            }
+        }
+        return sum;
     }
 
     // returns true if is this board the goal board
@@ -65,6 +88,24 @@ public final class Board {
     public boolean equals(Object y) {
         if (y.getClass() != this.getClass()) {
             return false;
+        }
+        if (y == null) {
+            return false;
+        }
+        if (this == y) {
+            return true;
+        }
+        Board b = (Board) y;
+        if (this.size() != b.size()) {
+            return false;
+        }
+
+        for (int i = 0; i < this.size(); i++) {
+            for (int j = 0; j < this.size(); j++) {
+                if (this.tileAt(i, j) != b.tileAt(i, j)) {
+                    return false;
+                }
+            }
         }
 
         return false;
