@@ -17,8 +17,11 @@ public final class Solver {
         queue = new PriorityQueue<searchNode>(1, new searchNodeComparator());
         // initialize searchNode
         // push onto PQ
-        // create children searchNodes
-        // push onto PQ
+        // while PQ is not empty
+        //      pop lowest priority searchNode
+        //      if not solved puzzle
+        //          generate children
+        //          push onto queue
     }
 
     // Returns the minimum number of moves to solve the initial board
