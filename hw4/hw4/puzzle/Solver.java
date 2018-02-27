@@ -1,13 +1,16 @@
 package hw4.puzzle;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.Queue;
 
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.PriorityQueue;
 
 public final class Solver {
 
     private final PriorityQueue<searchNode> queue;
+    private LinkedList<Board> solution;
     private int moves;
 
     // Constructor which solves the puzzle, computing everything necessary
@@ -15,6 +18,7 @@ public final class Solver {
     // Solves the puzzle using the A* algorithm. Assumes a solution exists.
     public Solver(Board initial) {
         queue = new PriorityQueue<searchNode>(1, new searchNodeComparator());
+        solution = new LinkedList<Board>();
         // initialize searchNode
         // push onto PQ
         // while PQ is not empty
@@ -22,6 +26,30 @@ public final class Solver {
         //      if not solved puzzle
         //          generate children
         //          push onto queue
+        searchNode init = new searchNode(initial, 0, null);
+        queue.add(init);
+
+        while (!queue.isEmpty()) {
+            searchNode current = queue.poll();
+            Board currBoard = current.board;
+
+            if (currBoard.isGoal()) {
+                solution.add(currBoard);
+                moves = current.moves;
+                return;
+            }
+
+            Queue<Board> children = (Queue) BoardUtils.neighbors(current.board);
+            for (Board b : children) {
+                if (!b.equals(currBoard)) {
+                    searchNode child = new searchNode(b, current.moves + 1, current);
+                    queue.add(child);
+                }
+            }
+
+            solution.add(currBoard);
+        }
+
     }
 
     // Returns the minimum number of moves to solve the initial board
@@ -31,17 +59,19 @@ public final class Solver {
 
     // Returns the sequence of Boards from the initial board to the solution
     public Iterable<Board> solution() {
-        return null;
+        return solution;
     }
 
     private class searchNode{
         private Board board;
         private int priority;
+        private int moves;
         private searchNode prev;
 
-        searchNode(Board b, searchNode prevNode) {
+        searchNode(Board b, int m, searchNode prevNode) {
+            moves = m;
             board = b;
-            priority = board.hamming();
+            priority = board.hamming() + moves;
             prev = prevNode;
         }
     }
