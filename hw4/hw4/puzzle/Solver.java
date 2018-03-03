@@ -39,9 +39,8 @@ public final class Solver {
                 return;
             }
 
-            Queue<Board> children = (Queue) BoardUtils.neighbors(current.board);
-            for (Board b : children) {
-                if (!b.equals(currBoard)) {
+            for (Board b : BoardUtils.neighbors(current.board)) {
+                if (!b.equals(current.prev.board)) {
                     searchNode child = new searchNode(b, current.moves + 1, current);
                     queue.add(child);
                 }
