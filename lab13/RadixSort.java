@@ -20,7 +20,10 @@ public class RadixSort
      **/
     public static String[] sort(String[] asciis)
     {
-        return null;
+        String[] sorted = new String[asciis.length];
+        System.arraycopy(asciis, 0, sorted, 0, asciis.length);
+        sortHelper(sorted, 0, sorted.length, 0);
+        return sorted;
     }
 
     /**
@@ -35,6 +38,35 @@ public class RadixSort
      **/
     private static void sortHelper(String[] asciis, int start, int end, int index)
     {
-        //TODO use if you want to
+        if (end <= start + 1) return;
+        int[] count = new int[256];
+        String[] temp = new String[asciis.length];
+        // count frequencies
+        for (int i = 0; i < asciis.length; i++) {
+            count[asciis[i].charAt(index) + 1] += 1;
+        }
+        // computer cumulates
+        for (int k = 1; k < 256; k++) {
+            count[k] += count[k -1];
+        }
+        // move records
+        for (int i = 0; i < asciis.length; i++) {
+            temp[count[asciis[i].charAt(index)]++] = asciis[i];
+        }
+        // copy back
+        for (int i = 0; i < asciis.length; i++) {
+            asciis[i] = temp[i];
+        }
+        for (int i = 1; i < 255; i++) {
+            sortHelper(asciis, start + count[i], start + count[i + 1], index + 1);
+        }
+    }
+
+    public static void main(String[] args) {
+        String[] ascii = {"apple", "ape", "banana", "bear", "zebra", "crocodile"};
+        String[] sorted = sort(ascii);
+        for (int i = 0; i < sorted.length; i++) {
+            System.out.print(sorted[i] + " ");
+        }
     }
 }
