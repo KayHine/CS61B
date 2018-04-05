@@ -87,13 +87,23 @@ public class SeamCarver {
 
     // Sequence of indicies for horizontal seam
     public int[] findHorizontalSeam() {
+        int[] seam = new int[picture.width()];
+
+        // Create a temp transpose image
+        Picture transpose = new Picture(picture.height(), picture.width());
+
         // Transpose the image
         for (int i = 0; i < picture.height(); i++) {
             for (int j = 0; j < picture.width(); j++) {
-
+                Color pixel = picture.get(i, j);
+                transpose.set(j, i, pixel);
             }
         }
-        return null;
+
+        SeamCarver carver = new SeamCarver(transpose);
+        seam = carver.findVerticalSeam();
+
+        return seam;
     }
 
     // Sequence of indices for vertical seam
@@ -104,7 +114,7 @@ public class SeamCarver {
         *   2 -> col + 1
         * */
         int[][] backtrack = new int[picture.width()][picture.height()];
-        int[] path = new int[picture.height()];
+        int[] seam = new int[picture.height()];
         double minimum;
         for (int row = 0; row < picture.height(); row++) {
             for (int col = 0; col < picture.width(); col++) {
@@ -156,34 +166,71 @@ public class SeamCarver {
 
         // Now we create the backtrack array
         int row = picture.height() - 1;
-        path[0] = minIndex;
-        int path_index = 1;
+        seam[0] = minIndex;
+        int seam_index = 1;
         while (row > 0) {
             if (backtrack[minIndex][row] == 0) {
                 minIndex = minIndex - 1;
-                path[path_index] = minIndex;
-                path_index++;
+                seam[seam_index] = minIndex;
+                seam_index++;
             } else if (backtrack[minIndex][row] == 1) {
-                path[path_index] = minIndex;
-                path_index++;
+                seam[seam_index] = minIndex;
+                seam_index++;
             } else {
                 minIndex = minIndex + 1;
-                path[path_index] = minIndex;
-                path_index++;
+                seam[seam_index] = minIndex;
+                seam_index++;
             }
             row--;
         }
 
-        return path;
+        return seam;
     }
 
     // Remove horizontal seam from picture
     public void removeHorizontalSeam(int[] seam) {
+        // Create a new image that will have the seam removed
+        Picture newPic = new Picture(picture.width(), picture.height() - 1);
+        // Copy the pixel to the new image unless the pixel is in the seam
+        int index = 0;
+        // Start from the right side of the picture because the seam array will be starting from that end
+        for (int col = picture.width() - 1; col >= 0; col--) {
+            for (int row = 0; row < picture.height(); row++) {
+                if (row == seam[index]) {
+                    continue;
+                }
 
+                Color pixel = picture.get(col, row);
+                newPic.set(col, row, pixel);
+            }
+            index++;
+        }
+
+        picture = newPic;
     }
 
     // Remove vertical seam from picture
     public void removeVerticalSeam(int[] seam) {
+        // Create a new image that will have the seam removed
+        Picture newPic = new Picture(picture.width() - 1, picture.height());
+        // Copy the pixel to the new image unless the pixel is in the seam
+        int index = 0;
+        for (int row = picture.height() - 1; row >= 0; row--) {
+            for (int col = 0; col < picture.width(); col++) {
+                if (col == seam[index]) {
+                    continue;
+                }
 
+                Color pixel = picture.get(col, row);
+                try {
+                    newPic.set(col, row, pixel);
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("col: " + col + " row: " + row);
+                }
+            }
+            index++;
+        }
+
+        picture = newPic;
     }
 }
