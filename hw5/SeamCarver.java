@@ -16,6 +16,13 @@ public class SeamCarver {
         height = picture.height();
         energy = new double[width][height];
         minPath = new double[width][height];
+
+        // create energy matrix
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                energy(i, j);
+            }
+        }
     }
 
     // Current picture
@@ -39,6 +46,7 @@ public class SeamCarver {
             throw new IndexOutOfBoundsException();
         }
 
+        // Check if energy was previously calculated, if not, caluclate it
         if (energy[x][y] != 0) {
             return energy[x][y];
         } else {
@@ -93,10 +101,10 @@ public class SeamCarver {
         Picture transpose = new Picture(picture.height(), picture.width());
 
         // Transpose the image
-        for (int i = 0; i < picture.height(); i++) {
-            for (int j = 0; j < picture.width(); j++) {
-                Color pixel = picture.get(i, j);
-                transpose.set(j, i, pixel);
+        for (int row = 0; row < picture.height(); row++) {
+            for (int col = 0; col < picture.width(); col++) {
+                Color pixel = picture.get(col, row);
+                transpose.set(row, col, pixel);
             }
         }
 
@@ -119,6 +127,7 @@ public class SeamCarver {
         for (int row = 0; row < picture.height(); row++) {
             for (int col = 0; col < picture.width(); col++) {
                 // Calculate trivial case with the top row
+                // minimum path energy = energy
                 if (row == 0) {
                     minPath[col][row] = energy[col][row];
                     backtrack[col][row] = -1;
@@ -164,22 +173,22 @@ public class SeamCarver {
             }
         }
 
-        // Now we create the backtrack array
+        // Now we create the backtrack array starting from the back
         int row = picture.height() - 1;
-        seam[0] = minIndex;
-        int seam_index = 1;
+        seam[picture.height() - 1] = minIndex;
+        int seam_index = picture.height() - 2;
         while (row > 0) {
             if (backtrack[minIndex][row] == 0) {
                 minIndex = minIndex - 1;
                 seam[seam_index] = minIndex;
-                seam_index++;
+                seam_index--;
             } else if (backtrack[minIndex][row] == 1) {
                 seam[seam_index] = minIndex;
-                seam_index++;
+                seam_index--;
             } else {
                 minIndex = minIndex + 1;
                 seam[seam_index] = minIndex;
-                seam_index++;
+                seam_index--;
             }
             row--;
         }
@@ -193,16 +202,19 @@ public class SeamCarver {
         Picture newPic = new Picture(picture.width(), picture.height() - 1);
         // Copy the pixel to the new image unless the pixel is in the seam
         int index = 0;
+        int r = 0;
         // Start from the right side of the picture because the seam array will be starting from that end
-        for (int col = picture.width() - 1; col >= 0; col--) {
+        for (int col = 0; col < picture.width() - 1; col++) {
             for (int row = 0; row < picture.height(); row++) {
                 if (row == seam[index]) {
                     continue;
                 }
 
                 Color pixel = picture.get(col, row);
-                newPic.set(col, row, pixel);
+                newPic.set(col, r, pixel);
+                r++;
             }
+            r = 0;
             index++;
         }
 
@@ -215,19 +227,18 @@ public class SeamCarver {
         Picture newPic = new Picture(picture.width() - 1, picture.height());
         // Copy the pixel to the new image unless the pixel is in the seam
         int index = 0;
-        for (int row = picture.height() - 1; row >= 0; row--) {
+        int column = 0;
+        for (int row = 0; row < picture.height(); row++) {
             for (int col = 0; col < picture.width(); col++) {
                 if (col == seam[index]) {
                     continue;
                 }
 
                 Color pixel = picture.get(col, row);
-                try {
-                    newPic.set(col, row, pixel);
-                } catch (IndexOutOfBoundsException e) {
-                    System.out.println("col: " + col + " row: " + row);
-                }
+                newPic.set(column, row, pixel);
+                column++;
             }
+            column = 0;
             index++;
         }
 
