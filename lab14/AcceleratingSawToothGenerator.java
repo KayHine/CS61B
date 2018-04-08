@@ -1,9 +1,12 @@
-public class SawToothGenerator implements Generator {
+public class AcceleratingSawToothGenerator implements Generator {
+
     private int period;
+    private double factor;
     private int state;
 
-    public SawToothGenerator(int period) {
+    public AcceleratingSawToothGenerator(int period, double factor) {
         this.period = period;
+        this.factor = factor;
         state = 0;
     }
 
@@ -11,6 +14,10 @@ public class SawToothGenerator implements Generator {
     public double next() {
         state = state + 1;
         int num = state % (period - 1);
+        if (state > period - 1) {
+            period = (int) (period * factor);
+            state = 0;
+        }
         return normalize(num);
     }
 

@@ -1,8 +1,8 @@
-public class SawToothGenerator implements Generator {
+public class StrangeBitwiseGenerator implements Generator {
     private int period;
     private int state;
 
-    public SawToothGenerator(int period) {
+    public StrangeBitwiseGenerator(int period) {
         this.period = period;
         state = 0;
     }
@@ -10,8 +10,9 @@ public class SawToothGenerator implements Generator {
     @Override
     public double next() {
         state = state + 1;
+        int weirdState = state & (state >> 3)  & (state >> 8) % period;
         int num = state % (period - 1);
-        return normalize(num);
+        return normalize(weirdState);
     }
 
     public double normalize(int num) {
